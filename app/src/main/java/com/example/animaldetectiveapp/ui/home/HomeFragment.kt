@@ -8,9 +8,10 @@ import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import com.example.animaldetectiveapp.databinding.FragmentHomeBinding
+import androidx.core.content.ContextCompat
+
 
 class HomeFragment : Fragment() {
-
     private var _binding: FragmentHomeBinding? = null
 
     // This property is only valid between onCreateView and
@@ -28,6 +29,7 @@ class HomeFragment : Fragment() {
         _binding = FragmentHomeBinding.inflate(inflater, container, false)
         val root: View = binding.root
 
+        root.setBackgroundColor(android.graphics.Color.parseColor("#def0b6"))
         val textView: TextView = binding.textHome
         homeViewModel.text.observe(viewLifecycleOwner) {
             textView.text = it
@@ -40,3 +42,4 @@ class HomeFragment : Fragment() {
         _binding = null
     }
 }
+
