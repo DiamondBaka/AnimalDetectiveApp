@@ -32,10 +32,7 @@ class HomeFragment : Fragment() {
         val root: View = binding.root
 
         root.setBackgroundColor(android.graphics.Color.parseColor("#def0b6"))
-        val textView: TextView = binding.textHome
-        homeViewModel.text.observe(viewLifecycleOwner) {
-            textView.text = it
-        }
+
         return root
     }
 
