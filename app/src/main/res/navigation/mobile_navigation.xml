@@ -12,6 +12,11 @@
         tools:layout="@layout/fragment_home" />
 
     <fragment
+        android:id="@+id/navigation_upload"
+        android:name="com.example.animaldetectiveapp.ui.upload.UploadFragment"
+        android:label="@string/title_upload"
+        tools:layout="@layout/fragment_upload" />
+    <fragment
         android:id="@+id/navigation_dashboard"
         android:name="com.example.animaldetectiveapp.ui.dashboard.DashboardFragment"
         android:label="@string/title_dashboard"
@@ -19,7 +24,7 @@
 
     <fragment
         android:id="@+id/navigation_notifications"
-        android:name="com.example.animaldetectiveapp.ui.notifications.UploadFragment"
+        android:name="com.example.animaldetectiveapp.ui.notifications.NotificationsFragment"
         android:label="@string/title_notifications"
         tools:layout="@layout/fragment_notifications" />
 </navigation>
