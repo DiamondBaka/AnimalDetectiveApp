@@ -6,5 +6,5 @@
     <corners android:radius="20dp"/>
 
     <!-- Background color -->
-    <solid android:color="#6B8E23"/> <!-- Dark green shade -->
+    <solid android:color="#84a345"/> <!-- Dark green shade -->
 </shape>

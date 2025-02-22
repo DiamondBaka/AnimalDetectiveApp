@@ -20,7 +20,7 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         val navView: BottomNavigationView = binding.navView
-        navView.setBackgroundColor(android.graphics.Color.parseColor("#84a345"))
+        navView.setBackgroundColor(android.graphics.Color.parseColor("#3b510e"))
         val navController = findNavController(R.id.nav_host_fragment_activity_main)
         // Passing each menu ID as a set of Ids because each
         // menu should be considered as top level destinations.
