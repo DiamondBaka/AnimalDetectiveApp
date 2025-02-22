@@ -1,4 +1,4 @@
-package com.example.animaldetectiveapp.ui.upload
+package com.example.animaldetectiveapp.ui.collection
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -7,11 +7,11 @@ import android.view.ViewGroup
 import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
-import com.example.animaldetectiveapp.databinding.FragmentUploadBinding
+import com.example.animaldetectiveapp.databinding.FragmentCollectionBinding
 
-class UploadFragment : Fragment() {
+class CollectionFragment : Fragment() {
 
-    private var _binding: FragmentUploadBinding? = null
+    private var _binding: FragmentCollectionBinding? = null
 
     // This property is only valid between onCreateView and
     // onDestroyView.
@@ -22,14 +22,14 @@ class UploadFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        val uploadViewModel =
-            ViewModelProvider(this).get(UploadViewModel::class.java)
+        val collectionViewModel =
+            ViewModelProvider(this).get(CollectionViewModel::class.java)
 
-        _binding = FragmentUploadBinding.inflate(inflater, container, false)
+        _binding = FragmentCollectionBinding.inflate(inflater, container, false)
         val root: View = binding.root
 
-        val textView: TextView = binding.textUpload
-        uploadViewModel.text.observe(viewLifecycleOwner) {
+        val textView: TextView = binding.textCollection
+        collectionViewModel.text.observe(viewLifecycleOwner) {
             textView.text = it
         }
         return root

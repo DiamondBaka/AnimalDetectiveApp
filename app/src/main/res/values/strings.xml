@@ -4,5 +4,6 @@
     <string name="title_dashboard">Map</string>
     <string name="title_notifications">Notifications</string>
     <string name="title_upload">Upload</string>
+    <string name="title_collection">Collection</string>
 
 </resources>
