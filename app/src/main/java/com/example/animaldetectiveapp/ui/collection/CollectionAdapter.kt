@@ -9,8 +9,10 @@ import com.bumptech.glide.Glide
 import com.example.animaldetectiveapp.R
 import java.io.File
 
-class CollectionAdapter(private val imageFiles: List<File>) :
-    RecyclerView.Adapter<CollectionAdapter.ImageViewHolder>() {
+class CollectionAdapter(
+    private val imageFiles: List<File>,
+    private val onImageClick: (File) -> Unit // Lambda function for click handling
+) : RecyclerView.Adapter<CollectionAdapter.ImageViewHolder>() {
 
     inner class ImageViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val imageView: ImageView = itemView.findViewById(R.id.imageViewItem)
@@ -28,6 +30,9 @@ class CollectionAdapter(private val imageFiles: List<File>) :
             .load(file)
             .centerCrop()
             .into(holder.imageView)
+
+        // Handle image click
+        holder.itemView.setOnClickListener { onImageClick(file) }
     }
 
     override fun getItemCount(): Int = imageFiles.size
