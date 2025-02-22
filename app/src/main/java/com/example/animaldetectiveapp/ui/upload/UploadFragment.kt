@@ -1,4 +1,4 @@
-package com.example.animaldetectiveapp.ui.notifications
+package com.example.animaldetectiveapp.ui.upload
 
 import android.os.Bundle
 import android.view.LayoutInflater
