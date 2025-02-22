@@ -8,7 +8,6 @@ import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import com.example.animaldetectiveapp.databinding.FragmentUploadBinding
-import com.example.animaldetectiveapp.ui.upload.UploadViewModel
 
 class UploadFragment : Fragment() {
 
@@ -29,7 +28,7 @@ class UploadFragment : Fragment() {
         _binding = FragmentUploadBinding.inflate(inflater, container, false)
         val root: View = binding.root
 
-        val textView: TextView = binding.textDashboard
+        val textView: TextView = binding.textUpload
         uploadViewModel.text.observe(viewLifecycleOwner) {
             textView.text = it
         }
