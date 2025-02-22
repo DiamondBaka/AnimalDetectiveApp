@@ -23,6 +23,11 @@ import java.util.Locale
 import java.util.concurrent.ExecutorService
 import android.media.MediaScannerConnection
 import java.util.concurrent.Executors
+import androidx.appcompat.app.AppCompatActivity
+import com.google.mlkit.vision.common.InputImage
+import com.google.mlkit.vision.label.ImageLabeler
+import com.google.mlkit.vision.label.ImageLabeling
+import com.google.mlkit.vision.label.defaults.ImageLabelerOptions
 
 class UploadFragment : Fragment() {
 
@@ -109,7 +114,6 @@ class UploadFragment : Fragment() {
     private fun takePhoto() {
         // Get a stable reference of the image capture use case
         val imageCapture = imageCapture ?: return
-
         // Create time-stamped output file to hold the image
         val photoFile = File(getOutputDirectory(), "${SimpleDateFormat(FILENAME_FORMAT, Locale.US).format(System.currentTimeMillis())}.jpg")
 
@@ -133,6 +137,23 @@ class UploadFragment : Fragment() {
                     Log.d("UploadFragment", "Photo capture succeeded: $savedUri")
                     Toast.makeText(requireContext(), "Photo captured!", Toast.LENGTH_SHORT).show()
                     // You can now use the savedUri to display or process the image
+                    val image: InputImage
+                    image = InputImage.fromFilePath(requireContext(), savedUri)
+
+                    val labeler = ImageLabeling.getClient(ImageLabelerOptions.DEFAULT_OPTIONS)
+                    Log.d("UploadFragment", "Photo saved to: $savedUri")
+                    println("STARTING IMAGE PROCESS")
+                    labeler.process(image)
+                        .addOnSuccessListener { labels ->
+                            for (label in labels) {
+                                Log.d("ImageProcessing", "Label: ${label.text}, Confidence: ${label.confidence}")
+                            }
+                        }
+                        .addOnFailureListener { e ->
+                            Log.e("ImageProcessing", "Image processing failed", e)
+                        }
+
+
                 }
 
                 override fun onError(exception: ImageCaptureException) {
