@@ -68,4 +68,6 @@ dependencies {
 
     implementation("com.google.mlkit:image-labeling:17.0.9")
 
+    implementation("com.google.android.gms:play-services-maps:19.1.0") // Check for the latest version
+    implementation("com.google.android.gms:play-services-location:21.3.0")
 }
