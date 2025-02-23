@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
@@ -7,31 +8,47 @@
     android:background="@color/background"
     tools:context=".ui.notifications.NotificationsFragment">
 
-    <TextView
-        android:id="@+id/text_notifications"
-        android:layout_width="match_parent"
+    <!-- Horizontal Guideline moved up to 40% -->
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guideline_top40"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
-        android:layout_marginEnd="8dp"
-        android:textAlignment="center"
-        android:textSize="20sp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintGuide_percent="0.4"
+        android:orientation="horizontal" />
+
+    <!-- Top ImageView: occupies top 40% of the screen -->
+
+    <!-- Bottom ImageView: occupies from the guideline to parent's bottom -->
 
     <ImageView
-        android:id="@+id/imageView"
-        android:layout_width="397dp"
-        android:layout_height="257dp"
+        android:id="@+id/imageViewTop"
+        android:layout_width="437dp"
+        android:layout_height="321dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="8dp"
         android:scaleType="centerCrop"
-        android:src="@mipmap/graph"
-        tools:layout_editor_absoluteX="8dp"
-        tools:layout_editor_absoluteY="73dp"
+        android:src="@drawable/bar_graph"
+        app:layout_constraintBottom_toTopOf="@id/guideline_top40"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.692" />
+
+    <ImageView
+        android:id="@+id/imageViewBottom"
+        android:layout_width="347dp"
+        android:layout_height="262dp"
+        android:layout_marginStart="48dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="48dp"
+        android:layout_marginBottom="102dp"
+        android:scaleType="centerCrop"
+        android:src="@drawable/line_graph"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toBottomOf="@id/guideline_top40" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
