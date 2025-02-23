@@ -4,12 +4,6 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
 
-    <TextView
-        android:id="@+id/text_dashboard"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Dashboard" />
-
     <FrameLayout
         android:id="@+id/map_container"
         android:layout_width="match_parent"

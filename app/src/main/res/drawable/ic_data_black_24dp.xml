@@ -1,0 +1,27 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24.0"
+    android:viewportHeight="24.0">
+
+    <!-- Path 1: Line from (12,19) to (12,11) -->
+    <path
+        android:pathData="M12,19 L12,11"
+        android:strokeColor="#FF000000"
+        android:strokeWidth="4"
+        android:strokeLineCap="round" />
+
+    <!-- Path 2: Line from (7,19) to (7,15) -->
+    <path
+        android:pathData="M7,19 L7,15"
+        android:strokeColor="#FF000000"
+        android:strokeWidth="4"
+        android:strokeLineCap="round" />
+
+    <!-- Path 3: Line from (17,19) to (17,6) -->
+    <path
+        android:pathData="M17,19 V6"
+        android:strokeColor="#FF000000"
+        android:strokeWidth="4"
+        android:strokeLineCap="round" />
+</vector>

@@ -44,10 +44,6 @@ class DashboardFragment : Fragment() {
         val dashboardViewModel = ViewModelProvider(this).get(DashboardViewModel::class.java)
         _binding = FragmentDashboardBinding.inflate(inflater, container, false)
 
-        dashboardViewModel.text.observe(viewLifecycleOwner) {
-            binding.textDashboard.text = it
-        }
-
         return binding.root
     }
 
