@@ -1,0 +1,19 @@
+[
+  {
+    "featureType": "poi",
+    "elementType": "all",
+    "stylers": [
+      { "visibility": "off" }
+    ]
+  },
+
+  {
+    "featureType": "water",
+    "elementType": "geometry",
+    "stylers": [
+      { "color": "#46bcec" },
+      { "lightness": 15 },
+      { "saturation": -10 }
+    ]
+  }
+]
