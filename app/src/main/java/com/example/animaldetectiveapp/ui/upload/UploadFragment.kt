@@ -27,6 +27,8 @@ import androidx.lifecycle.lifecycleScope
 import com.bumptech.glide.Glide
 import com.example.animaldetectiveapp.R
 import com.example.animaldetectiveapp.databinding.FragmentUploadBinding
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationServices
 import com.google.ai.client.generativeai.GenerativeModel
 import com.google.ai.client.generativeai.type.content
 import com.google.gson.Gson
@@ -39,6 +41,8 @@ import java.util.Locale
 import java.util.concurrent.Executors
 
 class UploadFragment : Fragment() {
+
+    private lateinit var fusedLocationClient: FusedLocationProviderClient
 
     private var _binding: FragmentUploadBinding? = null
     private val binding get() = _binding!!
@@ -68,6 +72,7 @@ class UploadFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireContext())
 
         if (allPermissionsGranted()) {
             startCamera()
@@ -128,13 +133,27 @@ class UploadFragment : Fragment() {
                     Toast.makeText(requireContext(), "Photo captured!", Toast.LENGTH_SHORT).show()
 
                     // Show the popup dialog with the captured image and analysis status
-                    showImageAnalysisDialog(photoFile)
+                    if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION)
+                        == PackageManager.PERMISSION_GRANTED) {
+                        fusedLocationClient.lastLocation.addOnSuccessListener { location ->
+                            val latitude = location?.latitude ?: 0.0
+                            val longitude = location?.longitude ?: 0.0
+                            // Now show the popup dialog with location info
+                            showImageAnalysisDialog(photoFile, latitude, longitude)
+                        }.addOnFailureListener {
+                            // In case location fetch fails, use default values
+                            showImageAnalysisDialog(photoFile, 0.0, 0.0)
+                        }
+                    } else {
+                        // If not granted, proceed without location info (or request location permission)
+                        showImageAnalysisDialog(photoFile, 0.0, 0.0)
+                    }
                 }
             }
         )
     }
 
-    private fun showImageAnalysisDialog(photoFile: File) {
+    private fun showImageAnalysisDialog(photoFile: File, latitude: Double, longitude: Double) {
         // Inflate the custom dialog layout
         val dialogView = layoutInflater.inflate(R.layout.dialog_image_analysis, null)
         val dialogImageView = dialogView.findViewById<ImageView>(R.id.dialogImageView)
@@ -161,7 +180,13 @@ class UploadFragment : Fragment() {
         viewLifecycleOwner.lifecycleScope.launch {
             val animalName = sendToGeminiWithResult(photoFile)
             // Optionally update your animals.json as well
-            updateAnimalsJson(photoFile.name, animalName)
+            updateAnimalsJson(photoFile.name, animalName, latitude, longitude)
+            dialogStatusTextView.text = "Animal: $animalName"
+        }
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            val animalName = sendToGeminiWithResult(photoFile)
+            updateAnimalsJson(photoFile.name, animalName, latitude, longitude)
             dialogStatusTextView.text = "Animal: $animalName"
         }
     }
@@ -182,7 +207,7 @@ class UploadFragment : Fragment() {
             // Build the input content using the DSL
             val inputContent = content {
                 image(bitmap)
-                text("What animal is this? Answer with only the name of the animal.")
+                text("What species is this? Answer with only the species name.")
             }
 
             // Call the Gemini API
@@ -195,7 +220,7 @@ class UploadFragment : Fragment() {
         }
     }
 
-    private fun updateAnimalsJson(imageName: String, animalName: String) {
+    private fun updateAnimalsJson(imageName: String, animalName: String, latitude: Double, longitude: Double) {
         val animalsFile = File(getOutputDirectory(), "animals.json")
         val animalsList = try {
             if (animalsFile.exists()) {
@@ -208,7 +233,7 @@ class UploadFragment : Fragment() {
             Log.e("UploadFragment", "Error parsing animals.json", e)
             mutableListOf()
         }
-        animalsList.add(AnimalEntry(imageName, animalName))
+        animalsList.add(AnimalEntry(imageName, animalName, latitude, longitude))
         val newJson = Gson().toJson(animalsList)
         animalsFile.writeText(newJson)
     }
@@ -232,4 +257,9 @@ class UploadFragment : Fragment() {
     }
 }
 
-data class AnimalEntry(val image: String, val animal: String)
+data class AnimalEntry(
+    val image: String,
+    val animal: String,
+    val latitude: Double,
+    val longitude: Double
+)
