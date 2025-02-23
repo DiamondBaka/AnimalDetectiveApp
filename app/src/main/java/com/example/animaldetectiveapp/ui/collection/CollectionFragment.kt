@@ -16,7 +16,9 @@ import java.text.SimpleDateFormat
 import java.util.Locale
 
 // Define AnimalEntry data class to match the structure of animals.json
-data class AnimalEntry(val image: String, val animal: String)
+data class AnimalEntry(val image: String, val animal: String, val longitude: Double, val latitude: Double) {
+
+}
 
 class CollectionFragment : Fragment() {
 
