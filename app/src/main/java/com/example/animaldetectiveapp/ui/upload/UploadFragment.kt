@@ -176,14 +176,6 @@ class UploadFragment : Fragment() {
 
         dialog.show()
 
-        // Launch a coroutine to call Gemini API and update the dialog with the result
-        viewLifecycleOwner.lifecycleScope.launch {
-            val animalName = sendToGeminiWithResult(photoFile)
-            // Optionally update your animals.json as well
-            updateAnimalsJson(photoFile.name, animalName, latitude, longitude)
-            dialogStatusTextView.text = "Animal: $animalName"
-        }
-
         viewLifecycleOwner.lifecycleScope.launch {
             val animalName = sendToGeminiWithResult(photoFile)
             updateAnimalsJson(photoFile.name, animalName, latitude, longitude)

@@ -40,7 +40,7 @@
         android:layout_width="349dp"
         android:layout_height="78dp"
         android:fontFamily="serif"
-        android:text="Recently Captured:"
+        android:text="Most Shared:"
         android:textAlignment="center"
         android:textColor="@color/darkgreen"
         android:textSize="34sp"
@@ -50,7 +50,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.041"
-        tools:text="Recently Captured:" />
+        tools:text="Most Shared:" />
 
     <TextView
         android:id="@+id/textView2"
