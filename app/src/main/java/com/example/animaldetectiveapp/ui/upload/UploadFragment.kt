@@ -2,40 +2,53 @@ package com.example.animaldetectiveapp.ui.upload
 
 import android.Manifest
 import android.content.pm.PackageManager
+import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
+import android.widget.ImageView
+import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.camera.core.*
+import androidx.appcompat.app.AlertDialog
+import androidx.camera.core.CameraSelector
+import androidx.camera.core.ImageCapture
+import androidx.camera.core.ImageCaptureException
+import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
+import com.bumptech.glide.Glide
 import com.example.animaldetectiveapp.R
 import com.example.animaldetectiveapp.databinding.FragmentUploadBinding
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationServices
+import com.google.ai.client.generativeai.GenerativeModel
+import com.google.ai.client.generativeai.type.content
+import com.google.gson.Gson
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Locale
-import java.util.concurrent.ExecutorService
-import android.media.MediaScannerConnection
 import java.util.concurrent.Executors
-import androidx.appcompat.app.AppCompatActivity
-import com.google.mlkit.vision.common.InputImage
-import com.google.mlkit.vision.label.ImageLabeler
-import com.google.mlkit.vision.label.ImageLabeling
-import com.google.mlkit.vision.label.defaults.ImageLabelerOptions
 
 class UploadFragment : Fragment() {
+
+    private lateinit var fusedLocationClient: FusedLocationProviderClient
 
     private var _binding: FragmentUploadBinding? = null
     private val binding get() = _binding!!
 
     private var imageCapture: ImageCapture? = null
-    private var cameraExecutor: ExecutorService? = null
+    private val cameraExecutor = Executors.newSingleThreadExecutor()
 
     // Permission request launcher
     private val requestPermissionLauncher =
@@ -43,8 +56,7 @@ class UploadFragment : Fragment() {
             if (isGranted) {
                 startCamera()
             } else {
-                Toast.makeText(requireContext(), "Camera permission denied", Toast.LENGTH_SHORT)
-                    .show()
+                Toast.makeText(requireContext(), "Camera permission denied", Toast.LENGTH_SHORT).show()
             }
         }
 
@@ -60,18 +72,14 @@ class UploadFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireContext())
 
-        // Check camera permission and request if necessary
         if (allPermissionsGranted()) {
             startCamera()
         } else {
             requestPermissionLauncher.launch(Manifest.permission.CAMERA)
         }
 
-        // Initialize camera executor
-        cameraExecutor = Executors.newSingleThreadExecutor()
-
-        // Set listener for capture button (make sure you have a button with id 'captureButton' in your layout)
         binding.captureButton.setOnClickListener {
             takePhoto()
         }
@@ -83,28 +91,17 @@ class UploadFragment : Fragment() {
         cameraProviderFuture.addListener({
             val cameraProvider = cameraProviderFuture.get()
 
-            // Build the preview use case
             val preview = Preview.Builder().build().also {
                 it.setSurfaceProvider(binding.previewView.surfaceProvider)
             }
 
-            // Build the image capture use case
             imageCapture = ImageCapture.Builder().build()
 
-            // Select back camera as a default
             val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
 
             try {
-                // Unbind use cases before rebinding
                 cameraProvider.unbindAll()
-
-                // Bind the camera to lifecycle with preview and image capture
-                cameraProvider.bindToLifecycle(
-                    viewLifecycleOwner,
-                    cameraSelector,
-                    preview,
-                    imageCapture
-                )
+                cameraProvider.bindToLifecycle(viewLifecycleOwner, cameraSelector, preview, imageCapture)
             } catch (exc: Exception) {
                 Log.e("UploadFragment", "Camera binding failed", exc)
             }
@@ -112,80 +109,157 @@ class UploadFragment : Fragment() {
     }
 
     private fun takePhoto() {
-        // Get a stable reference of the image capture use case
         val imageCapture = imageCapture ?: return
-        // Create time-stamped output file to hold the image
-        val photoFile = File(getOutputDirectory(), "${SimpleDateFormat(FILENAME_FORMAT, Locale.US).format(System.currentTimeMillis())}.jpg")
 
-        // Create output options object which contains the file + metadata
+        val photoFile = File(
+            getOutputDirectory(),
+            SimpleDateFormat("yyyy-MM-dd-HH-mm-ss-SSS", Locale.US).format(System.currentTimeMillis()) + ".jpg"
+        )
+
         val outputOptions = ImageCapture.OutputFileOptions.Builder(photoFile).build()
 
-        // Take the picture and handle the result
         imageCapture.takePicture(
             outputOptions,
             ContextCompat.getMainExecutor(requireContext()),
             object : ImageCapture.OnImageSavedCallback {
-                override fun onImageSaved(outputFileResults: ImageCapture.OutputFileResults) {
-                    MediaScannerConnection.scanFile(
-                        requireContext(),
-                        arrayOf(photoFile.absolutePath),
-                        null
-                    ) { path, uri ->
-                        Log.d("UploadFragment", "Scanned $path -> uri: $uri")
-                    }
+                override fun onError(exc: ImageCaptureException) {
+                    Log.e("UploadFragment", "Photo capture failed: ${exc.message}", exc)
+                    Toast.makeText(requireContext(), "Photo capture failed", Toast.LENGTH_SHORT).show()
+                }
+
+                override fun onImageSaved(output: ImageCapture.OutputFileResults) {
                     val savedUri = Uri.fromFile(photoFile)
                     Log.d("UploadFragment", "Photo capture succeeded: $savedUri")
                     Toast.makeText(requireContext(), "Photo captured!", Toast.LENGTH_SHORT).show()
-                    // You can now use the savedUri to display or process the image
-                    val image: InputImage
-                    image = InputImage.fromFilePath(requireContext(), savedUri)
 
-                    val labeler = ImageLabeling.getClient(ImageLabelerOptions.DEFAULT_OPTIONS)
-                    Log.d("UploadFragment", "Photo saved to: $savedUri")
-                    println("STARTING IMAGE PROCESS")
-                    labeler.process(image)
-                        .addOnSuccessListener { labels ->
-                            for (label in labels) {
-                                Log.d("ImageProcessing", "Label: ${label.text}, Confidence: ${label.confidence}")
-                            }
+                    // Show the popup dialog with the captured image and analysis status
+                    if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION)
+                        == PackageManager.PERMISSION_GRANTED) {
+                        fusedLocationClient.lastLocation.addOnSuccessListener { location ->
+                            val latitude = location?.latitude ?: 0.0
+                            val longitude = location?.longitude ?: 0.0
+                            // Now show the popup dialog with location info
+                            showImageAnalysisDialog(photoFile, latitude, longitude)
+                        }.addOnFailureListener {
+                            // In case location fetch fails, use default values
+                            showImageAnalysisDialog(photoFile, 0.0, 0.0)
                         }
-                        .addOnFailureListener { e ->
-                            Log.e("ImageProcessing", "Image processing failed", e)
-                        }
-
-
-                }
-
-                override fun onError(exception: ImageCaptureException) {
-                    Log.e("UploadFragment", "Photo capture failed: ${exception.message}", exception)
-                    Toast.makeText(requireContext(), "Photo capture failed", Toast.LENGTH_SHORT).show()
+                    } else {
+                        // If not granted, proceed without location info (or request location permission)
+                        showImageAnalysisDialog(photoFile, 0.0, 0.0)
+                    }
                 }
             }
         )
     }
 
-    private fun allPermissionsGranted(): Boolean {
-        return ContextCompat.checkSelfPermission(
-            requireContext(), Manifest.permission.CAMERA
-        ) == PackageManager.PERMISSION_GRANTED
+    private fun showImageAnalysisDialog(photoFile: File, latitude: Double, longitude: Double) {
+        // Inflate the custom dialog layout
+        val dialogView = layoutInflater.inflate(R.layout.dialog_image_analysis, null)
+        val dialogImageView = dialogView.findViewById<ImageView>(R.id.dialogImageView)
+        val dialogStatusTextView = dialogView.findViewById<TextView>(R.id.dialogStatusTextView)
+        val dialogCloseButton = dialogView.findViewById<Button>(R.id.dialogCloseButton)
+
+        // Load the captured image
+        Glide.with(this).load(photoFile).into(dialogImageView)
+        dialogStatusTextView.text = "Analyzing..."
+
+        // Create and show the dialog
+        val dialog = AlertDialog.Builder(requireContext())
+            .setView(dialogView)
+            .setCancelable(false)
+            .create()
+
+        dialogCloseButton.setOnClickListener {
+            dialog.dismiss()
+        }
+
+        dialog.show()
+
+        // Launch a coroutine to call Gemini API and update the dialog with the result
+        viewLifecycleOwner.lifecycleScope.launch {
+            val animalName = sendToGeminiWithResult(photoFile)
+            // Optionally update your animals.json as well
+            updateAnimalsJson(photoFile.name, animalName, latitude, longitude)
+            dialogStatusTextView.text = "Animal: $animalName"
+        }
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            val animalName = sendToGeminiWithResult(photoFile)
+            updateAnimalsJson(photoFile.name, animalName, latitude, longitude)
+            dialogStatusTextView.text = "Animal: $animalName"
+        }
     }
 
-    // Helper method to get output directory for saving photos
+    // New suspend function that returns the animal name detected by Gemini API
+    private suspend fun sendToGeminiWithResult(photoFile: File): String {
+        return try {
+            val imageBytes = withContext(Dispatchers.IO) { photoFile.readBytes() }
+            // Convert byte array to Bitmap if needed
+            val bitmap = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
+
+            // Create the GenerativeModel instance (using your Gemini API key)
+            val generativeModel = GenerativeModel(
+                modelName = "gemini-1.5-pro-latest",
+                apiKey = getString(R.string.gemini_api_key)
+            )
+
+            // Build the input content using the DSL
+            val inputContent = content {
+                image(bitmap)
+                text("What species is this? Answer with only the species name.")
+            }
+
+            // Call the Gemini API
+            val response = generativeModel.generateContent(inputContent)
+            // Return the detected animal name (or "Unknown" if response is empty)
+            response.text?.trim() ?: "Unknown"
+        } catch (e: Exception) {
+            Log.e("UploadFragment", "Error sending to Gemini", e)
+            "Error"
+        }
+    }
+
+    private fun updateAnimalsJson(imageName: String, animalName: String, latitude: Double, longitude: Double) {
+        val animalsFile = File(getOutputDirectory(), "animals.json")
+        val animalsList = try {
+            if (animalsFile.exists()) {
+                val json = animalsFile.readText()
+                Gson().fromJson(json, Array<AnimalEntry>::class.java).toMutableList()
+            } else {
+                mutableListOf()
+            }
+        } catch (e: Exception) {
+            Log.e("UploadFragment", "Error parsing animals.json", e)
+            mutableListOf()
+        }
+        animalsList.add(AnimalEntry(imageName, animalName, latitude, longitude))
+        val newJson = Gson().toJson(animalsList)
+        animalsFile.writeText(newJson)
+    }
+
     private fun getOutputDirectory(): File {
         val mediaDir = requireContext().externalMediaDirs.firstOrNull()?.let {
             File(it, resources.getString(R.string.app_name)).apply { mkdirs() }
         }
-        return if (mediaDir != null && mediaDir.exists())
-            mediaDir else requireContext().filesDir
+        return mediaDir ?: requireContext().filesDir
     }
 
-    companion object {
-        private const val FILENAME_FORMAT = "yyyy-MM-dd-HH-mm-ss-SSS"
+    private fun allPermissionsGranted(): Boolean {
+        return ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.CAMERA) ==
+                PackageManager.PERMISSION_GRANTED
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
-        cameraExecutor?.shutdown()
+        cameraExecutor.shutdown()
     }
 }
+
+data class AnimalEntry(
+    val image: String,
+    val animal: String,
+    val latitude: Double,
+    val longitude: Double
+)
