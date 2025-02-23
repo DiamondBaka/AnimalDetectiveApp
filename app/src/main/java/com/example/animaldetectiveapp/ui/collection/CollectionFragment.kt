@@ -1,6 +1,7 @@
 package com.example.animaldetectiveapp.ui.collection
 
 import android.os.Bundle
+import android.os.Environment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -9,9 +10,15 @@ import androidx.recyclerview.widget.GridLayoutManager
 import com.bumptech.glide.Glide
 import com.example.animaldetectiveapp.R
 import com.example.animaldetectiveapp.databinding.FragmentCollectionBinding
+import com.google.gson.Gson
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Locale
+
+// Define AnimalEntry data class to match the structure of animals.json
+data class AnimalEntry(val image: String, val animal: String, val longitude: Double, val latitude: Double) {
+
+}
 
 class CollectionFragment : Fragment() {
 
@@ -56,18 +63,27 @@ class CollectionFragment : Fragment() {
             .load(file)
             .into(binding.expandedImageView)
 
-        // Display image info (file name and date)
-        val formattedDate = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US)
+        val formattedDate = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.US)
             .format(file.lastModified())
-        binding.imageInfoTextView.text = "File: ${file.name}\nDate: $formattedDate"
+
+        // Read animal name from animals.json
+        val animalsFile = File(getOutputDirectory(), "animals.json")
+        var animalName = "Unknown"
+        if (animalsFile.exists()) {
+            val json = animalsFile.readText()
+            val animalsList = Gson().fromJson(json, Array<AnimalEntry>::class.java)
+            val animalMap = animalsList.associate { it.image to it.animal }
+            animalName = animalMap[file.name] ?: "Unknown"
+        }
+
+        binding.imageInfoTextView.text = "File: ${file.name}\nDate: $formattedDate\nAnimal: $animalName"
     }
 
-
     private fun getOutputDirectory(): File {
-        val mediaDir = activity?.externalMediaDirs?.firstOrNull()?.let {
+        val mediaDir = requireContext().externalMediaDirs.firstOrNull()?.let {
             File(it, resources.getString(R.string.app_name)).apply { mkdirs() }
         }
-        return if (mediaDir != null && mediaDir.exists()) mediaDir else requireContext().filesDir
+        return mediaDir ?: requireContext().filesDir
     }
 
     override fun onDestroyView() {
