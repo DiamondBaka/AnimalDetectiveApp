@@ -6,6 +6,7 @@
     <string name="title_upload">Upload</string>
     <string name="title_collection">Collection</string>
 
-    <string name="gemini_api_key">AIzaSyCR1XGA7oHu-Elg5OmxmocfptOXMzq-s6g</string>
+    <string name="gemini_api_key"></string>
+    <string name="mapbox_access_token"></string>
 
 </resources>
