@@ -6,16 +6,9 @@
     android:layout_height="wrap_content"
     android:orientation="vertical"
     android:background="@drawable/rounded_corners"
+    android:layout_gravity="center_horizontal"
     android:padding="8dp"
     android:clipToOutline="true">
-
-    <ImageView
-        android:id="@+id/popupImage"
-        android:layout_width="150dp"
-        android:layout_height="200dp"
-        android:scaleType="centerCrop"
-        android:background="@drawable/rounded_corners" />
-
 
     <TextView
         android:id="@+id/popupText"
@@ -24,5 +17,15 @@
         android:text="Animal details"
         android:textColor="@android:color/black"
         android:textSize="16sp"
-        android:paddingTop="4dp" />
+        android:paddingTop="4dp"
+        android:layout_gravity="center_horizontal" />
+
+
+    <ImageView
+        android:id="@+id/popupImage"
+        android:layout_width="150dp"
+        android:layout_height="200dp"
+        android:background="@drawable/rounded_corners"
+        android:scaleType="centerCrop" />
+
 </LinearLayout>

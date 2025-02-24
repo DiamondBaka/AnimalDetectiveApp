@@ -49,6 +49,7 @@ dependencies {
     implementation(libs.androidx.lifecycle.viewmodel.ktx)
     implementation(libs.androidx.navigation.fragment.ktx)
     implementation(libs.androidx.navigation.ui.ktx)
+    implementation(libs.play.services.location)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -66,10 +67,7 @@ dependencies {
     implementation("com.github.bumptech.glide:glide:4.12.0")
     kapt("com.github.bumptech.glide:compiler:4.12.0")
 
-    implementation("com.google.mlkit:image-labeling:17.0.9")
-
-    implementation("com.google.android.gms:play-services-maps:19.1.0")
-    implementation("com.google.android.gms:play-services-location:21.3.0")
+    implementation("com.mapbox.maps:android:11.10.0")
 
     implementation("com.google.ai.client.generativeai:generativeai:0.9.0")
     implementation("com.google.code.gson:gson:2.11.0")

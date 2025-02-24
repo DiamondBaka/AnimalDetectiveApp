@@ -176,12 +176,35 @@ class UploadFragment : Fragment() {
 
         dialog.show()
 
+        // Launch a coroutine to get animal name and (if valid) its description
         viewLifecycleOwner.lifecycleScope.launch {
             val animalName = sendToGeminiWithResult(photoFile)
-            updateAnimalsJson(photoFile.name, animalName, latitude, longitude)
+            var description = ""
+            if (animalName != "Unknown" && animalName != "Error") {
+                description = getAnimalDescription(animalName)
+            }
+            updateAnimalsJson(photoFile.name, animalName, description, latitude, longitude)
             dialogStatusTextView.text = "Animal: $animalName"
         }
     }
+
+    private suspend fun getAnimalDescription(animalName: String): String {
+        return try {
+            val generativeModel = GenerativeModel(
+                modelName = "gemini-1.5-pro-latest",
+                apiKey = getString(R.string.gemini_api_key)
+            )
+            val inputContent = content {
+                text("Provide a brief description of the $animalName species in one sentence.")
+            }
+            val response = generativeModel.generateContent(inputContent)
+            response.text?.trim() ?: ""
+        } catch (e: Exception) {
+            Log.e("UploadFragment", "Error getting animal description", e)
+            ""
+        }
+    }
+
 
     // New suspend function that returns the animal name detected by Gemini API
     private suspend fun sendToGeminiWithResult(photoFile: File): String {
@@ -212,7 +235,13 @@ class UploadFragment : Fragment() {
         }
     }
 
-    private fun updateAnimalsJson(imageName: String, animalName: String, latitude: Double, longitude: Double) {
+    private fun updateAnimalsJson(
+        imageName: String,
+        animalName: String,
+        description: String,
+        latitude: Double,
+        longitude: Double
+    ) {
         val animalsFile = File(getOutputDirectory(), "animals.json")
         val animalsList = try {
             if (animalsFile.exists()) {
@@ -225,10 +254,11 @@ class UploadFragment : Fragment() {
             Log.e("UploadFragment", "Error parsing animals.json", e)
             mutableListOf()
         }
-        animalsList.add(AnimalEntry(imageName, animalName, latitude, longitude))
+        animalsList.add(AnimalEntry(imageName, animalName, description, latitude, longitude))
         val newJson = Gson().toJson(animalsList)
         animalsFile.writeText(newJson)
     }
+
 
     private fun getOutputDirectory(): File {
         val mediaDir = requireContext().externalMediaDirs.firstOrNull()?.let {
@@ -252,6 +282,7 @@ class UploadFragment : Fragment() {
 data class AnimalEntry(
     val image: String,
     val animal: String,
+    val description: String,  // new field for the description
     val latitude: Double,
     val longitude: Double
 )
